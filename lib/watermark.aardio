@@ -1,0 +1,89 @@
+// Watermark helper - lib/watermark.aardio
+// 提供 drawWatermarkOnSoImage(soImage) 函数，按 config.setting.watermark_* 绘制文字水印（透明背景）
+import config;
+import gdip;
+
+function drawWatermarkOnSoImage(imgSoImage){
+    if(!imgSoImage) return false;
+    if(!config.setting.watermark_enabled) return false;
+
+    try{
+        // 尝试获取 buffer
+        var buf = null;
+        if(imgSoImage.saveToBuffer) buf = imgSoImage.saveToBuffer("png");
+        elseif(imgSoImage.toBuffer) buf = imgSoImage.toBuffer();
+        elseif(imgSoImage.getBuffer) buf = imgSoImage.getBuffer();
+        if(!#buf) return false;
+
+        var bmp = gdip.bitmap(buf);
+        if(!bmp) return false;
+
+        var g = gdip.graphics(bmp);
+
+        var text = config.setting.watermark_text || "";
+        if(!#text){ bmp.dispose && bmp.dispose(); g.dispose && g.dispose(); return false; }
+
+        var fsize = config.setting.watermark_size || 16;
+        var fontName = config.setting.watermark_font || "Arial"; // 可扩展
+        var fnt = gdip.font(fontName, fsize);
+
+        var col = config.setting.watermark_color || 0xFFFFFFFF; // 0xAARRGGBB
+        var a = (col >> 24) & 0xFF;
+        var r = (col >> 16) & 0xFF;
+        var gg = (col >> 8) & 0xFF;
+        var b = col & 0xFF;
+        var alpha = a / 255.0;
+
+        var measure = g.measureString(text,fnt) || {width = fsize * #text; height = fsize};
+        var w = bmp.width; var h = bmp.height;
+        var posX = 0; var posY = 0;
+        switch(config.setting.watermark_position){
+            case "top-left": posX = 5; posY = 5; break;
+            case "top-right": posX = w - measure.width - 5; posY = 5; break;
+            case "bottom-left": posX = 5; posY = h - measure.height - 5; break;
+            case "center": posX = (w - measure.width)/2; posY = (h - measure.height)/2; break;
+            default: posX = w - measure.width - 5; posY = h - measure.height - 5;
+        }
+
+        var mode = config.setting.watermark_appearMode || "none";
+        var brush = gdip.brush(r,gg,b,alpha);
+
+        if(mode == "rotate"){
+            var angle = config.setting.watermark_rotationAngle || 30;
+            g.translate(posX + measure.width/2, posY + measure.height/2);
+            g.rotate(angle);
+            g.translate(-(posX + measure.width/2), -(posY + measure.height/2));
+            g.drawString(text,fnt,brush,posX,posY);
+            g.resetTransform && g.resetTransform();
+        }
+        elseif(mode == "fade"){
+            g.drawString(text,fnt,gdip.brush(r,gg,b,alpha * 0.85),posX,posY);
+        }
+        elseif(mode == "slide"){
+            var dx = math.floor(measure.width * 0.1);
+            if(config.setting.watermark_position == "bottom-right"){
+                g.drawString(text,fnt,brush,posX + dx,posY);
+            } else {
+                g.drawString(text,fnt,brush,posX - dx,posY);
+            }
+        }
+        else {
+            g.drawString(text,fnt,brush,posX,posY);
+        }
+
+        var outBuf = bmp.saveToBuffer && bmp.saveToBuffer("png");
+        if(#outBuf && imgSoImage.loadBuffer){
+            imgSoImage.loadBuffer(outBuf);
+        }
+
+        g.dispose && g.dispose();
+        bmp.dispose && bmp.dispose();
+        return true;
+    }
+    catch(e){
+        io.print("drawWatermarkOnSoImage error:" ++ tostring(e));
+        return false;
+    }
+}
+
+return { drawWatermarkOnSoImage = drawWatermarkOnSoImage };

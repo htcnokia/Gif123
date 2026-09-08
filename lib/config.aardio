@@ -29,6 +29,13 @@ config.setting.mix(
 	watermark_frameInterval = 1;         // 每隔多少帧出现一次（1 表示每帧都出现）
 	watermark_appearMode = "none";     // none / rotate / fade / slide
 	watermark_rotationAngle = 30;        // rotate 时的旋转角度步长（度）
+
+	// Screenshot settings
+	screenshot_enable_hotkey = false; // 用户是否启用截图全局热键
+	screenshot_hotkey = null; // 存储热键描述，例如 {ctrl=true,shift=true,alt=false,vkey='X'#}
+	screenshot_detect_code = false; // 是否启用识码模式（条码/二维码）
+	screenshot_code_engine = "zbar"; // 可选: "zbar" | "libzint" （优先 zbar）
+	screenshot_annotate_codes = false; // 识别后是否在图片上绘制识别框并保存
 );
 
 //不需要序列化的配置名字前请添加下划线

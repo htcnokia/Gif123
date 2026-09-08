@@ -1,0 +1,169 @@
+// Screenshot helper - lib/screenshot.aardio
+// 提供截图功能（全屏、选区、捕获预览）并可选地调用水印与识码
+import config;
+import soImage;
+import win;
+import gdip;
+import watermark = import("lib/watermark.aardio");
+import zbar; // aardio 自带 zbar
+
+// captureFullScreen() -> soImage
+function captureFullScreen(){
+    var img = soImage();
+    // 0,0,0,0 表示全屏（若 API 不同，可调整）
+    img.capture();
+    return img;
+}
+
+// capturePreview(mainForm.plusPreview) -> soImage
+function capturePreview(mainForm){
+    var hwndPreview = mainForm.plusPreview.hwnd;
+    var pos = win.getPos(hwndPreview,true);
+    var x = pos[0]; var y = pos[1]; var cx = pos[2]; var cy = pos[3];
+    var img = soImage();
+    img.capture(,x,y,cx,cy);
+    return img;
+}
+
+// captureSelect() -> soImage (简单覆盖窗口实现)
+function captureSelect(){
+    // 创建全屏遮罩窗口，用户拖拽矩形返回区域
+    var overlay = win.form(text="";left=0;top=0;right=win.getSystemMetrics(0);bottom=win.getSystemMetrics(1);bgcolor=0x80000000;border="none";mode="popup";alpha=120);
+    var startX=0,startY=0,endX=0,endY=0;
+    var selRect = null;
+
+    overlay.onMouseDown = function(wParam,lParam){
+        startX = lParam & 0xFFFF; startY = lParam >> 16;
+        selRect = {left=startX;top=startY;right=startX;bottom=startY};
+    }
+    overlay.onMouseMove = function(wParam,lParam){
+        if(!selRect) return;
+        endX = lParam & 0xFFFF; endY = lParam >> 16;
+        selRect.right = endX; selRect.bottom = endY;
+        owner.redraw();
+    }
+    overlay.onMouseUp = function(wParam,lParam){
+        if(!selRect) return;
+        overlay.close();
+    }
+
+    overlay.onPaint = function(g){
+        if(selRect){
+            var l = math.min(selRect.left, selRect.right);
+            var t = math.min(selRect.top, selRect.bottom);
+            var r = math.max(selRect.left, selRect.right);
+            var b = math.max(selRect.top, selRect.bottom);
+            g.fillRect(l,t,r,b,0x40FFFFFF);
+            g.frameRect(l,t,r,b,0xFF77B200,2);
+        }
+    }
+
+    overlay.show(true);
+    win.loopMessage();
+
+    if(!selRect) return null;
+    var l = math.min(selRect.left, selRect.right);
+    var t = math.min(selRect.top, selRect.bottom);
+    var r = math.max(selRect.left, selRect.right);
+    var b = math.max(selRect.top, selRect.bottom);
+    var w = r - l; var h = b - t;
+    if(w<=0 || h<=0) return null;
+
+    var img = soImage();
+    img.capture(,l,t,w,h);
+    return img;
+}
+
+// save soImage to PNG file (path), return true/false
+function saveSoImageAsPng(img,path){
+    if(!img) return false;
+    try{
+        if(img.saveToFile){
+            img.saveToFile(path);
+            return true;
+        }
+        else{
+            var buf = img.saveToBuffer && img.saveToBuffer("png") || img.toBuffer && img.toBuffer();
+            if(#buf){
+                io.saveBuffer(path,buf);
+                return true;
+            }
+        }
+    }
+    catch(e){ io.print("saveSoImageAsPng error:" ++ tostring(e)); }
+    return false;
+}
+
+// copy image to clipboard - best effort
+function copySoImageToClipboard(img){
+    try{
+        var tmp = io.tempName() ++ ".png";
+        if(saveSoImageAsPng(img,tmp)){
+            import win.clip;
+            // 尝试用通用方式把图片路径写入剪贴板
+            if(win.clip && win.clip.image){
+                win.clip.image.write(tmp);
+            }
+            elseif(win.clip && win.clip.write){
+                win.clip.write(tmp);
+            }
+            else if(win.clip && win.clip.gif){
+                win.clip.gif.write(tmp);
+            }
+            io.remove(tmp);
+            return true;
+        }
+    }
+    catch(e){ io.print("copySoImageToClipboard error:" ++ tostring(e)); }
+    return false;
+}
+
+// run zbar scanner on soImage, return array of {type,data,rect}
+function scanImageWithZbar(img){
+    var results = {};
+    try{
+        var scanner = zbar.scanner();
+        scanner.config('enable');
+        // zbar 提供 scanSoImage
+        scanner.scanSoImage(img, function(typeName,data,x,y,w,h){
+            table.push(results,{ type=typeName; data=data; rect={x=x;y=y;w=w;h=h} });
+        });
+        scanner.delete && scanner.delete();
+    }
+    catch(e){ io.print("scanImageWithZbar error:" ++ tostring(e)); }
+    return results;
+}
+
+// main entry: capture(mode, options) where mode = "select"|"fullscreen"|"preview"
+function capture(mode, mainForm, options){
+    options = options || {};
+    var img = null;
+    if(mode=="fullscreen") img = captureFullScreen();
+    elseif(mode=="preview") img = capturePreview(mainForm);
+    else img = captureSelect();
+
+    if(!img) return null;
+
+    // apply watermark if enabled
+    watermark.drawWatermarkOnSoImage(img);
+
+    // save to output dir
+    var outDir = fsys.environment.expand(config.setting.outputDir) || fsys.environment.expand("%LocalAppData%/gif123");
+    io.createDir(outDir);
+    var filename = "screenshot_" ++ tostring(time(),"%Y%m%d%H%M%S") ++ ".png";
+    var outPath = io.joinpath(outDir, filename);
+    saveSoImageAsPng(img,outPath);
+
+    // copy to clipboard
+    copySoImageToClipboard(img);
+
+    // detect codes if enabled
+    var codes = {};
+    if(config.setting.screenshot_detect_code){
+        codes = scanImageWithZbar(img);
+    }
+
+    return { image = img; path = outPath; codes = codes };
+}
+
+return { capture = capture, captureSelect = captureSelect, captureFullScreen = captureFullScreen, capturePreview = capturePreview, saveSoImageAsPng = saveSoImageAsPng, copySoImageToClipboard = copySoImageToClipboard };
