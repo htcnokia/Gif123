@@ -19,6 +19,16 @@ config.setting.mix(
 	recordHotkey = {2/*_MOD_CONTROL*/|4/*_MOD_SHIFT*/|1/*_MOD_ALT*/;'Z'#};
 	countdown = 0;
 	fps = 12;
+
+	// Watermark (内嵌水印设置)
+	watermark_enabled = true;
+	watermark_text = "Gif123";           // 默认可修改为 ""
+	watermark_color = 0xFFFFFFFF;        // 0xAARRGGBB（白色）
+	watermark_size = 16;                 // 字号(px)
+	watermark_position = "bottom-right"; // top-left/top-right/bottom-left/bottom-right/center
+	watermark_frameInterval = 1;         // 每隔多少帧出现一次（1 表示每帧都出现）
+	watermark_appearMode = "none";     // none / rotate / fade / slide
+	watermark_rotationAngle = 30;        // rotate 时的旋转角度步长（度）
 );
 
 //不需要序列化的配置名字前请添加下划线

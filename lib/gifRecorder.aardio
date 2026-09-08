@@ -38,7 +38,7 @@ class gifRecorder{
 				gifFile.lastFrameTick = null;  
 				
 				mainForm.onStartRecording();
-	 
+	 	
 	 			var errorDiffusion = config.setting.errorDiffusion;
 	 			var pointerSize = config.setting.captureMouse ? config.setting.pointerSize : null;
 				var dpiShrink = config.setting.chkShrink;
@@ -51,24 +51,109 @@ class gifRecorder{
 				var max = ..math.max;
 				var time_tick = ..time.tick;
 				var getPos = ..win.getPos;
-
+	
 				while( eventGif.wait() ){
 					if(eventTimer.wait(0)){break;}
 					
 					var tk = time_tick();
 					if(gifFile.lastFrameTick){
-    					var delay = (tk-gifFile.lastFrameTick)/10;//抓下帧以前保存上一帧的延时  
-    					imgScreen.decreaseBpp(8,256,8,errorDiffusion);
-    					gifFile.write(imgScreen,true,delay);
+	 					var delay = (tk-gifFile.lastFrameTick)/10;//抓下帧以前保存上一帧的延时  
+	 					imgScreen.decreaseBpp(8,256,8,errorDiffusion);
+	 					gifFile.write(imgScreen,true,delay);
 					} 
-    				gifFile.lastFrameTick = tk;
-    				
+	 				gifFile.lastFrameTick = tk;
+					
 					var x,y,cx,cy = getPos(hwndPreview,true);
 					imgScreen.capture(,x,y,cx,cy,pointerSize); 
 					 
-    				if(dpiShrink && (dpiScale>1.1)){
-    					imgScreen.resize2(cx/dpiScale,cy/dpiScale);
-    				}
+					// === Watermark 绘制（如果已启用） ===
+					if(config.setting.watermark_enabled){
+						if(!gifFile._frameIndex) gifFile._frameIndex = 0;
+						gifFile._frameIndex = gifFile._frameIndex + 1;
+						var interval = config.setting.watermark_frameInterval || 1;
+						if((gifFile._frameIndex - 1) % interval == 0){
+							// 尝试把 soImage 转为内存 buffer，然后用 gdip 绘制文字
+							var ok = false;
+							try{
+								var buf = null;
+								// soImage 可能支持 saveToBuffer 或 toBuffer，按可用的尝试
+								if(imgScreen.saveToBuffer){ buf = imgScreen.saveToBuffer("png"); }
+								elseif(imgScreen.toBuffer){ buf = imgScreen.toBuffer(); }
+								elseif(imgScreen.getBuffer){ buf = imgScreen.getBuffer(); }
+								
+								if(#buf){
+									var bmp = gdip.bitmap(buf);
+									if(bmp){
+										var g = gdip.graphics(bmp);
+										var text = config.setting.watermark_text || "";
+										if(#text){
+											var fsize = config.setting.watermark_size || 16;
+											var fnt = gdip.font("Arial", fsize);
+											// color 0xAARRGGBB
+											var col = config.setting.watermark_color || 0xFFFFFFFF;
+											var a = (col >> 24) & 0xFF;
+											var r = (col >> 16) & 0xFF;
+											var gg = (col >> 8) & 0xFF;
+											var b = col & 0xFF;
+											var alpha = a / 255.0;
+											// measure
+											var measure = g.measureString(text,fnt) || {width = fsize * #text; height = fsize};
+											var w = bmp.width; var h = bmp.height;
+											var posX = 0; var posY = 0;
+											switch(config.setting.watermark_position){
+											case "top-left": posX = 5; posY = 5; break;
+											case "top-right": posX = w - measure.width - 5; posY = 5; break;
+											case "bottom-left": posX = 5; posY = h - measure.height - 5; break;
+											case "center": posX = (w - measure.width)/2; posY = (h - measure.height)/2; break;
+											default: posX = w - measure.width - 5; posY = h - measure.height - 5;
+											}
+											var mode = config.setting.watermark_appearMode || "none";
+											// 绘制时使用带 alpha 的画刷
+											var brush = gdip.brush(r,gg,b,alpha);
+											if(mode == "rotate"){
+												var angle = config.setting.watermark_rotationAngle || 30;
+												g.translate(posX + measure.width/2, posY + measure.height/2);
+												g.rotate(angle);
+												g.translate(-(posX + measure.width/2), -(posY + measure.height/2));
+												g.drawString(text,fnt,brush,posX,posY);
+												g.resetTransform && g.resetTransform();
+											}
+											elseif(mode == "fade"){
+												g.drawString(text,fnt,gdip.brush(r,gg,b,alpha * 0.85),posX,posY);
+											}
+											elseif(mode == "slide"){
+												var dx = math.floor(measure.width * 0.1);
+												if(config.setting.watermark_position == "bottom-right"){
+													g.drawString(text,fnt,brush,posX + dx,posY);
+												} else {
+													g.drawString(text,fnt,brush,posX - dx,posY);
+												}
+											}
+											else{
+												g.drawString(text,fnt,brush,posX,posY);
+											}
+											// save back to imgScreen
+											var outBuf = bmp.saveToBuffer && bmp.saveToBuffer("png");
+											if(#outBuf && imgScreen.loadBuffer){
+												imgScreen.loadBuffer(outBuf);
+											}
+											g.dispose && g.dispose();
+											bmp.dispose && bmp.dispose();
+											ok = true;
+										}
+									}
+								}
+							catch(e){
+								// 若绘制失败，忽略水印以保证录制不中断
+								io.print("watermark draw failed:" ++ tostring(e));
+							}
+						}
+					}
+					// === End watermark ===
+					
+					if(dpiShrink && (dpiScale>1.1)){
+						imgScreen.resize2(cx/dpiScale,cy/dpiScale);
+					}
 				}	
 				
 				gifFile.close(); 
@@ -86,7 +171,7 @@ class gifRecorder{
 				
 				eventGif.set();
 			},..mainForm,this.eventTimer,this.eventGif
-		)		
+		) 		
 	}
 	
 	stop = function(){
@@ -98,5 +183,5 @@ class gifRecorder{
 			this.hThreadGif = null;
 			this.hThreadTimer = null;
 		} 
-	} 
+	}
 }

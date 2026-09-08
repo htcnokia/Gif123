@@ -6,15 +6,15 @@ import win.ui;
 /*DSG{{*/
 var winform = win.form(text="aardio form";right=450;bottom=435;bgcolor=16777215;border="none";exmode="none";max=false;min=false;mode="popup")
 winform.add(
-btnGifsicleHelp={cls="plus";text='\uF059';left=375;top=143;right=396;bottom=165;align="right";border={bottom=1;color=-6908266};color=3947580;dl=1;dt=1;font=LOGFONT(h=-15;name='FontAwesomeGif123');notify=1;textPadding={right=-2};z=1};
-btnOutputDir={cls="plus";text='\uF07C';left=375;top=227;right=396;bottom=249;align="right";border={bottom=1;color=-6908266};color=3947580;dl=1;dt=1;font=LOGFONT(h=-15;name='FontAwesomeGif123');notify=1;textPadding={right=-2};z=2};
+btnGifsicleHelp={cls="plus";text='\uF059';left=375;top=143;right=396;bottom=165;align="right";border={bottom=1;color=-6908266};color=3947580;dl=1;dt=1;font=LOGFONT(h=-15;name='FontAwesomeGif123');n[...] 
+btnOutputDir={cls="plus";text='\uF07C';left=375;top=227;right=396;bottom=249;align="right";border={bottom=1;color=-6908266};color=3947580;dl=1;dt=1;font=LOGFONT(h=-15;name='FontAwesomeGif123');not[...] 
 btnOutputFilenameExample={cls="plus";text="%y%m%d %H%M%S.gif";left=202;top=343;right=396;bottom=367;align="right";clip=1;color=8388608;notify=1;textPadding={left=5};z=10};
-btnSave={cls="plus";text="Save";left=264;top=390;right=363;bottom=418;align="left";bgcolor=-5197169;disabled=1;dl=1;dt=1;font=LOGFONT(h=-13);iconStyle={align="left";font=LOGFONT(name='FontAwesomeGif123');padding={left=12}};iconText='\uF0C7';notify=1;textPadding={left=32};z=6};
-chkErrorDiffusion={cls="plus";text="Error diffusion dithering";left=35;top=60;right=416;bottom=90;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;name='FontAwesomeGif123');padding={left=2}};iconText='\uF0C8 ';notify=1;textPadding={left=21};z=12};
-chkOptimize={cls="plus";text="Optimize output GIF animations for space";left=35;top=96;right=416;bottom=126;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;name='FontAwesomeGif123');padding={left=2}};iconText='\uF0C8 ';notify=1;textPadding={left=21};z=5};
-chkShrink={cls="plus";text="Auto shrink on high DPI display";left=35;top=24;right=416;bottom=54;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;name='FontAwesomeGif123');padding={left=2}};iconText='\uF0C8 ';notify=1;textPadding={left=21};z=3};
-editGifsicleArgs={cls="plus";left=41;top=139;right=396;bottom=165;align="right";border={bottom=1;color=-6908266};clip=1;editable="edit";font=LOGFONT(h=-13);notify=1;textPadding={top=6;right=21;bottom=2};z=4};
-editOutputDir={cls="plus";left=41;top=223;right=396;bottom=249;align="right";border={bottom=1;color=-6908266};clip=1;editable="edit";font=LOGFONT(h=-13);textPadding={top=6;right=21;bottom=2};z=11};
+btnSave={cls="plus";text="Save";left=264;top=390;right=363;bottom=418;align="left";bgcolor=-5197169;disabled=1;dl=1;dt=1;font=LOGFONT(h=-13);iconStyle={align="left";font=LOGFONT(name='FontAwesomeG[...]
+chkErrorDiffusion={cls="plus";text="Error diffusion dithering";left=35;top=60;right=416;bottom=90;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;name='FontAwes[...]
+chkOptimize={cls="plus";text="Optimize output GIF animations for space";left=35;top=96;right=416;bottom=126;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;na[...]
+chkShrink={cls="plus";text="Auto shrink on high DPI display";left=35;top=24;right=416;bottom=54;align="left";dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left";font=LOGFONT(h=-14;name='FontAwes[...]
+editGifsicleArgs={cls="plus";left=41;top=139;right=396;bottom=165;align="right";border={bottom=1;color=-6908266};clip=1;editable="edit";font=LOGFONT(h=-13);notify=1;textPadding={top=6;right=21;bot[...]
+editOutputDir={cls="plus";left=41;top=223;right=396;bottom=249;align="right";border={bottom=1;color=-6908266};clip=1;editable="edit";font=LOGFONT(h=-13);textPadding={top=6;right=21;bottom=2};z=11}[...]
 editOutputFilename={cls="plus";left=41;top=319;right=394;bottom=345;align="right";border={bottom=1;color=-6908266};editable="edit";font=LOGFONT(h=-13);textPadding={top=6;bottom=2};z=7};
 lbOutputFilename={cls="plus";text="Output filename：";left=41;top=298;right=287;bottom=318;align="left";dl=1;dt=1;notify=1;z=9};
 lbOutputFolder={cls="plus";text="Output folder：";left=41;top=205;right=264;bottom=225;align="left";dl=1;dt=1;notify=1;z=8}
@@ -28,6 +28,58 @@ winform.chkShrink.skin(style.checkbox);
 winform.chkOptimize.skin(style.checkbox);
 winform.chkErrorDiffusion.skin(style.checkbox);
 winform.btnOutputDir.skin(style.button);
+
+// ========== Watermark controls (added) ==========
+winform.add(
+  chkWatermark={cls="plus";text="Enable watermark";left=35;top=260;right=416;bottom=288;dl=1;dt=1;font=LOGFONT(h=-14);iconStyle={align="left"};notify=1};
+  lbWatermarkText={cls="plus";text="Watermark text:";left=41;top=295;right=180;bottom=315;align="left";dl=1;dt=1;notify=1};
+  editWatermarkText={cls="plus";left=185;top=296;right=396;bottom=322;editable="edit";font=LOGFONT(h=-13);textPadding={top=6;bottom=2};notify=1};
+  lbWatermarkColor={cls="plus";text="Color (#AARRGGBB):";left=41;top=325;right=180;bottom=345;align="left";dl=1;dt=1;notify=1};
+  editWatermarkColor={cls="plus";left=185;top=326;right=320;bottom=352;editable="edit";font=LOGFONT(h=-13);text="#FFFFFFFF";notify=1};
+  btnPickColor={cls="plus";text="Pick";left=326;top=326;right=396;bottom=352;notify=1};
+  lbWatermarkSize={cls="plus";text="Font size (px):";left=41;top=355;right=180;bottom=375;align="left";dl=1;dt=1;notify=1};
+  editWatermarkSize={cls="plus";left=185;top=356;right=396;bottom=382;editable="edit";font=LOGFONT(h=-13);text="16";notify=1};
+  lbWatermarkPos={cls="plus";text="Position:";left=41;top=385;right=180;bottom=405;align="left";dl=1;dt=1;notify=1};
+  cmbWatermarkPos={cls="plus";left=185;top=386;right=396;bottom=412;notify=1;items={"top-left";"top-right";"bottom-left";"bottom-right";"center"}};
+  lbFrameInterval={cls="plus";text="Frame interval:";left=41;top=415;right=180;bottom=435;align="left";dl=1;dt=1;notify=1};
+  editFrameInterval={cls="plus";left=185;top=416;right=260;bottom=442;editable="edit";font=LOGFONT(h=-13);text="1";notify=1};
+  lbAppearMode={cls="plus";text="Appear mode:";left=265;top=415;right=340;bottom=435;align="left";dl=1;dt=1;notify=1};
+  cmbAppearMode={cls="plus";left=340;top=416;right=396;bottom=442;notify=1;items={"none";"rotate";"fade";"slide"}};
+  lbRotationAngle={cls="plus";text="Rotate angle (deg):";left=41;top=445;right=180;bottom=465;align="left";dl=1;dt=1;notify=1};
+  editRotationAngle={cls="plus";left=185;top=446;right=260;bottom=472;editable="edit";font=LOGFONT(h=-13);text="30";notify=1};
+);
+
+// ========== Watermark initialization & events ==========
+import fsys.environment;
+winform.chkWatermark.checked = config.setting.watermark_enabled;
+winform.editWatermarkText.text = config.setting.watermark_text || "";
+winform.editWatermarkColor.text = string.format("#%08X", config.setting.watermark_color || 0xFFFFFFFF);
+winform.editWatermarkSize.text = tostring(config.setting.watermark_size || 16);
+winform.cmbWatermarkPos.setText(config.setting.watermark_position || "bottom-right");
+winform.editFrameInterval.text = tostring(config.setting.watermark_frameInterval || 1);
+winform.cmbAppearMode.setText(config.setting.watermark_appearMode || "none");
+winform.editRotationAngle.text = tostring(config.setting.watermark_rotationAngle || 30);
+
+winform.btnPickColor.oncommand = function(id,event){
+    import win.color;
+    var clr = win.color(getColor=true,owner=winform);
+    if(clr !== null){
+        winform.editWatermarkColor.text = "#" ++ string.format("%08X",clr);
+        winform.btnSave.disabled = false;
+    }
+}
+
+// 当任意水印控件变更时，启用保存按钮
+winform.chkWatermark.oncommand = function(){ winform.btnSave.disabled = false; }
+winform.editWatermarkText.editBox.onChange = function(){ winform.btnSave.disabled = false; }
+winform.editWatermarkColor.editBox.onChange = function(){ winform.btnSave.disabled = false; }
+winform.editWatermarkSize.editBox.onChange = function(){ winform.btnSave.disabled = false; }
+winform.cmbWatermarkPos.oncommand = function(){ winform.btnSave.disabled = false; }
+winform.editFrameInterval.editBox.onChange = function(){ winform.btnSave.disabled = false; }
+winform.cmbAppearMode.oncommand = function(){ winform.btnSave.disabled = false; }
+winform.editRotationAngle.editBox.onChange = function(){ winform.btnSave.disabled = false; }
+
+// existing code continues...
 
 import fsys.environment;
 winform.editOutputDir.text = fsys.environment.unExpand(config.setting.outputDir);
@@ -47,7 +99,7 @@ winform.chkOptimize.oncommand = function(id,event){
 }
 
 winform.chkShrink.oncommand = function(id,event){
-	winform.btnSave.disabled = false;	
+	winform.btnSave.disabled = false;
 }
 
 winform.editGifsicleArgs.editBox.onChange = function(){ 
@@ -68,7 +120,7 @@ winform.btnOutputDir.oncommand = function(id,event){
 	var path = fsys.dlg.dir(fsys.environment.expand(winform.editOutputDir.text),winform,'Select the output folder')
 	if(path){
 		winform.editOutputDir.text = path;
-	}	
+	} 	
 }
 
 winform.onDropFiles = function(files){
@@ -95,14 +147,14 @@ winform.editOutputFilename.editBox.onChange = function(){
 
 winform.chkErrorDiffusion.checked = config.setting.errorDiffusion;
 winform.chkErrorDiffusion.oncommand = function(id,event){
-	winform.btnSave.disabled = false;	
+	winform.btnSave.disabled = false;
 }
 
 winform.btnSave.oncommand = function(id,event){
 	
 	var outputDir = string.trim(winform.editOutputDir.text);
 	if(!#outputDir){
-		outputDir = "%LocalAppData%\gif123";
+		outputDir = "%LocalAppData%\\gif123";
 	}
 	
 	if(!fsys.isDir(fsys.environment.expand(outputDir))){
@@ -120,16 +172,16 @@ winform.btnSave.oncommand = function(id,event){
 	else {
 		try{ filename = tostring(time(),filename); }
 		catch(){ filename = null; }
-		
+	
 		if(!(filename && filename == fsys.path.validName(filename))){ 	
 			return winform.editOutputFilename.editBox.showErrorTip(uiLanguage.outputFilenameInvalid);; 
 		}
-		
+	
 		filename = winform.editOutputFilename.text;
 		if(!string.endWith(filename,".gif")){
 			 filename = filename + ".gif";
 		} 
-		
+	
 		config.setting.outputFilename = filename;
 		winform.editOutputFilename.text = filename; 
 	} 
@@ -149,13 +201,25 @@ winform.btnSave.oncommand = function(id,event){
 	config.setting.chkOptimize = winform.chkOptimize.checked;
 	
 	config.setting.errorDiffusion = winform.chkErrorDiffusion.checked;
-	config.setting.save();	
+
+	// ====== Save watermark settings ======
+	config.setting.watermark_enabled = winform.chkWatermark.checked;
+	config.setting.watermark_text = tostring(winform.editWatermarkText.text);
+	try{ config.setting.watermark_color = tonumber(string.replace(winform.editWatermarkColor.text,"#","0x"),16); } catch(){ config.setting.watermark_color = 0xFFFFFFFF; }
+	config.setting.watermark_size = tonumber(winform.editWatermarkSize.text) || 16;
+	config.setting.watermark_position = tostring(winform.cmbWatermarkPos.getText());
+	config.setting.watermark_frameInterval = tonumber(winform.editFrameInterval.text) || 1;
+	config.setting.watermark_appearMode = tostring(winform.cmbAppearMode.getText());
+	config.setting.watermark_rotationAngle = tonumber(winform.editRotationAngle.text) || 30;
+	// ====== End watermark save ======
+
+	config.setting.save();
 	
 	winform.btnSave.disabledText = {'\uF254';'\uF251';'\uF252';'\uF253';'\uF250';text=''};
 	win.delay(500);
 	winform.btnSave.disabledText = null;
 	
-	winform.btnSave.disabled = true;	
+	winform.btnSave.disabled = true; 
 }
 
 winform.btnSave.text = uiLanguage.save;
@@ -167,7 +231,7 @@ winform.chkErrorDiffusion.text = uiLanguage.errorDiffusion;
 
 if(!winform.parent){
 	import win.ui.simpleWindow;
-	win.ui.simpleWindow(winform);	
+	win.ui.simpleWindow(winform); 	
 }
 
 winform.editGifsicleArgs.editBox.wndproc = function(hwnd,message,wParam,lParam){
@@ -232,8 +296,9 @@ winform.editGifsicleArgs.editBox.wndproc = function(hwnd,message,wParam,lParam){
 				return tag ++ sep ++ tostring(value);
 			},1)
 		
-		owner.text = string.slice(owner.text,1,left-1) ++ text;	
+		owner.text = string.slice(owner.text,1,left-1) ++ text; 	
 		owner.setsel(b,e); 
+		}
 	}
 }
 
