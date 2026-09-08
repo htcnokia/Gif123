@@ -43,17 +43,26 @@ mainForm.btnScreenshot.oncommand = function(id,event){
 import win.ui.accelerator;
 var screenshotAccelerator = null;
 function tryRegisterScreenshotHotkey(){
-    if(!config.setting.screenshot_enable_hotkey) return;
+    if(!config.setting.screenshot_enable_hotkey) {
+        if(screenshotAccelerator){ screenshotAccelerator.dispose && screenshotAccelerator.dispose(); screenshotAccelerator = null; }
+        return true;
+    }
     var hk = config.setting.screenshot_hotkey;
-    if(!hk) return;
+    if(!hk) return true;
     try{
         screenshotAccelerator && screenshotAccelerator.dispose && screenshotAccelerator.dispose();
         screenshotAccelerator = win.ui.accelerator({{ ctrl = hk.ctrl; shift = hk.shift; alt = hk.alt; vkey = hk.vkey; oncommand = function(){ mainForm.btnScreenshot.oncommand(); } }});
+        return true;
     }
     catch(e){
         io.print("register screenshot hotkey failed:" ++ tostring(e));
+        screenshotAccelerator = null;
+        return false;
     }
 }
+
+// expose to other modules (settings dialog will call this to test/register)
+mainForm.tryRegisterScreenshotHotkey = tryRegisterScreenshotHotkey;
 
 // initial attempt
 tryRegisterScreenshotHotkey();

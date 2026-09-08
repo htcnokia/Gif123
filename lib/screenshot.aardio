@@ -18,8 +18,7 @@ function captureFullScreen(){
 // capturePreview(mainForm.plusPreview) -> soImage
 function capturePreview(mainForm){
     var hwndPreview = mainForm.plusPreview.hwnd;
-    var pos = win.getPos(hwndPreview,true);
-    var x = pos[0]; var y = pos[1]; var cx = pos[2]; var cy = pos[3];
+    var x,y,cx,cy = win.getPos(hwndPreview,true);
     var img = soImage();
     img.capture(,x,y,cx,cy);
     return img;
@@ -28,7 +27,9 @@ function capturePreview(mainForm){
 // captureSelect() -> soImage (简单覆盖窗口实现)
 function captureSelect(){
     // 创建全屏遮罩窗口，用户拖拽矩形返回区域
-    var overlay = win.form(text="";left=0;top=0;right=win.getSystemMetrics(0);bottom=win.getSystemMetrics(1);bgcolor=0x80000000;border="none";mode="popup";alpha=120);
+    var sw = win.getSystemMetrics(0);
+    var sh = win.getSystemMetrics(1);
+    var overlay = win.form(text="";left=0;top=0;right=sw;bottom=sh;bgcolor=0x80000000;border="none";mode="popup";alpha=120);
     var startX=0,startY=0,endX=0,endY=0;
     var selRect = null;
 
@@ -134,6 +135,79 @@ function scanImageWithZbar(img){
     return results;
 }
 
+// annotate image with rectangles and optional labels, save to new path and return path
+function annotateAndSaveImage(img, codes, outPath){
+    try{
+        var buf = img.saveToBuffer && img.saveToBuffer("png") || img.toBuffer && img.toBuffer();
+        if(!#buf) return null;
+        var bmp = gdip.bitmap(buf);
+        if(!bmp) return null;
+        var g = gdip.graphics(bmp);
+        var pen = gdip.pen(0xFFFF0000, 3);
+        var font = gdip.font("Arial", 12);
+        var brush = gdip.brush(0xFF000000);
+        for(i=1; #codes; 1){
+            var c = codes[i];
+            if(c.rect){
+                var x = c.rect.x; var y = c.rect.y; var w = c.rect.w; var h = c.rect.h;
+                g.drawRect(x,y,w,h,pen);
+                g.drawString(c.data, font, brush, x, y + h + 2);
+            }
+        }
+        var outBuf = bmp.saveToBuffer && bmp.saveToBuffer("png");
+        if(#outBuf){ io.saveBuffer(outPath,outBuf); }
+        g.dispose && g.dispose(); bmp.dispose && bmp.dispose();
+        return outPath;
+    }
+    catch(e){ io.print("annotateAndSaveImage error:" ++ tostring(e)); return null; }
+}
+
+// show scan results dialog and offer actions
+function showScanResults(mainForm, codes, img, outPath){
+    if(!#codes) return;
+    var dlg = win.form(text="Scan results";left=0;top=0;right=480;bottom=340;mode="popup");
+    var list = dlg.add({cls="listbox";left=10;top=10;right=460;bottom=240});
+    for(i=1; #codes; 1){
+        var c = codes[i];
+        list.add(string.format("[%s] %s", c.type, tostring(c.data)));
+    }
+
+    var btnCopy = dlg.add({cls="plus";text="Copy All";left=10;top=250;right=110;bottom=280});
+    var btnAnnotate = dlg.add({cls="plus";text="Annotate & Save";left=120;top=250;right=270;bottom=280});
+    var btnOpen = dlg.add({cls="plus";text="Open URL";left=280;top=250;right=380;bottom=280});
+    var btnClose = dlg.add({cls="plus";text="Close";left=390;top=250;right=460;bottom=280});
+
+    btnCopy.oncommand = function(){
+        var all = "";
+        for(i=1; #codes; 1){ all = all ++ tostring(codes[i].data) ++ "\r\n"; }
+        import win.clip;
+        win.clip.write(all);
+    }
+    btnAnnotate.oncommand = function(){
+        var dir = fsys.environment.expand(config.setting.outputDir);
+        io.createDir(dir);
+        var path = io.joinpath(dir, "screenshot_annotated_" ++ tostring(time(),"%Y%m%d%H%M%S") ++ ".png");
+        var saved = annotateAndSaveImage(img, codes, path);
+        if(saved){
+            dlg.msgbox = function(){ mainForm.msgbox('Annotated saved: ' ++ saved); };
+        }
+    }
+    btnOpen.oncommand = function(){
+        // open selected entry URL if any
+        var idx = list.getCurSel();
+        if(!idx) return;
+        var entry = codes[idx];
+        if(entry && entry.data && string.find(entry.data, "^https?://")){
+            import process;
+            process.openUrl(entry.data);
+        }
+    }
+    btnClose.oncommand = function(){ dlg.close(); }
+
+    win.ui.simpleWindow(dlg);
+    dlg.show(true);
+}
+
 // main entry: capture(mode, options) where mode = "select"|"fullscreen"|"preview"
 function capture(mode, mainForm, options){
     options = options || {};
@@ -161,9 +235,12 @@ function capture(mode, mainForm, options){
     var codes = {};
     if(config.setting.screenshot_detect_code){
         codes = scanImageWithZbar(img);
+        if(#codes){
+            showScanResults(mainForm, codes, img, outPath);
+        }
     }
 
     return { image = img; path = outPath; codes = codes };
 }
 
-return { capture = capture, captureSelect = captureSelect, captureFullScreen = captureFullScreen, capturePreview = capturePreview, saveSoImageAsPng = saveSoImageAsPng, copySoImageToClipboard = copySoImageToClipboard };
+return { capture = capture, captureSelect = captureSelect, captureFullScreen = captureFullScreen, capturePreview = capturePreview, saveSoImageAsPng = saveSoImageAsPng, copySoImageToClipboard = copySoImageToClipboard, scanImageWithZbar = scanImageWithZbar };
